@@ -11,5 +11,7 @@
 - Install required python modules.
 - Put your Bot Token into main.py at the end.
 - Run main.py
+## Todo list:
+https://github.com/JezzaR-The-Proto/RPGBot/issues/1
 ## Credits
 - Me (JezzaR the Protogen#6483) - Code
