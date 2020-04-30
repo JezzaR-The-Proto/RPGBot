@@ -1,0 +1,484 @@
+{
+    "options": [
+        {
+            "action": "You take a step.",
+            "xp": 0
+        },
+        {
+            "action": "You wonder how you ended up playing an RPG on discord.",
+            "xp": 3
+        },
+        {
+            "action": "You find a beautiful woman and fall in love with her. Then you notice she is wearing socks and sandals. You run as far away as you can.",
+            "xp": 1
+        },
+        {
+            "action": "You walk down a calm country road.",
+            "xp": 3
+        },
+        {
+            "action": "How did you find this bot?",
+            "xp": 0
+        },
+        {
+            "action": "Fun Fact: This bot was made as a joke.",
+            "xp": 1
+        },
+        {
+            "action": "Fun Fact: The previous fun fact was a lie.",
+            "xp": 1
+        },
+        {
+            "action": "You emerge from the hole that you call your home and set off on your adventure.",
+            "xp": 1
+        },
+        {
+            "action": "You come across a small cabin in the woods and enter uninvited. You walk towards a table with three bowls of spaghetti. You eat them all and leave. Later a bear comes walking in and says 'SOMEBODY TOUCHA MA SPAGHETT'",
+            "xp": 5
+        },
+        {
+            "action": "do you know de wae",
+            "xp": 2
+        },
+        {
+            "action": "You find gold lying on the floor! Wait, no. They're chocolate coins.",
+            "xp": 3
+        },
+        {
+            "action": "You toss everything you have into a pot and hope it cooks a meal. It doesn't.",
+            "xp": 5
+        },
+        {
+            "action": "The day is bright, warm, and slightly dry but you decide that today is a good day to continue with your adventures.",
+            "xp": 3
+        },
+        {
+            "action": "There is a cult in a city that has 100 chickens and the soul of a great hero is trapped in one of the chickens and they don't know which one it is so they worship all of them.",
+            "xp": 5
+        },
+        {
+            "action": "You find Pewdiepie recording his latest video in a park.",
+            "xp": 3
+        },
+        {
+            "action": "You hear a rumor about a weapon of mass destruction in the next town. You didnt know you had a clone.",
+            "xp": 3
+        },
+        {
+            "action": "You asked people what their favourite natural disasters were. Hurricanes blew away the competition.",
+            "xp": 3
+        },
+        {
+            "action": "It is 80 degrees outside, yet you emerge in a jacket designed for arctic weather. 'Man's not hot,' you say in defiance. 'Man can never be hot.'",
+            "xp": 7
+        },
+        {
+            "action": "What do you call daylight without sunshine? Night... you fool.",
+            "xp": 3
+        },
+        {
+            "action": "You notice one of the clouds looks like a chubby little alligator with its mouth open.",
+            "xp": 5
+        },
+        {
+            "action": "You lean against a tree.",
+            "type": "xp",
+            "amount": 2
+        },
+        {
+            "action": "You have successfully preformed a barrel roll, then promptly pay respects to the Sky King.",
+            "type": "xp",
+            "amount": 4
+        },
+        {
+            "action": "You stop and smell the flowers.",
+            "type": "none",
+            "amount": "none"
+        },
+        {
+            "action": "A farmer in the field with his cows counted 196 of them, but when he rounded up he had 200.",
+            "type": "xp",
+            "amount": 3
+        },
+        {
+            "action": "You have found an item!",
+            "type": "item",
+            "amount": "Apples and Oranges"
+        },
+        {
+            "action": "Get Schwifty in here!",
+            "type": "gold",
+            "amount": 1
+        },
+        {
+            "action": "You wander down a path that leads to a dark and mysterious forest.",
+            "type": "none",
+            "amount": "none"
+        },
+        {
+            "action": "You have found an item!",
+            "type": "item",
+            "amount": "Apples and Oranges"
+        },
+        {
+            "action": "You begin to wonder why, no matter how many steps you take, does the horizon never grow closer, the scenery never change, and the same leaves keep falling on your face.",
+            "type": "gold",
+            "amount": 3
+        },
+        {
+            "action": "You are one step away from being rich. Now all you need is money.",
+            "type": "xp",
+            "amount": 6
+        },
+        {
+            "action": "You have found an item!",
+            "type": "item",
+            "amount": "Apples and Oranges"
+        },
+        {
+            "action": "You flip a coin 76 times. It lands on heads every time.",
+            "type": "xp",
+            "amount": 4
+        },
+        {
+            "action": "Through a nearby storm-drain you can just barely make out the voices of three people discussing plans to for a major heist this evening.",
+            "type": "gold",
+            "amount": 4
+        },
+        {
+            "action": "It's raining nonstop.",
+            "type": "xp",
+            "amount": 1
+        },
+        {
+            "action": "Sometimes when you close your eyes, you can't see.",
+            "type": "xp",
+            "amount": 4
+        },
+        {
+            "action": "You've been taking so many steps and you don't even know where you're going. Though you realise that at this point you're too afraid to ask.",
+            "type": "xp",
+            "amount": 2
+        },
+        {
+            "action": "After endless clicking you realise there isn't anything epic to be gained by exploring. Right at that moment you read a sign 'x steps away from the legendary item'",
+            "type": "gold",
+            "amount": 2
+        },
+        {
+            "action": "You sit down and feed the pidgeons as you wait for the next step.",
+            "type": "xp",
+            "amount": 2
+        },
+        {
+            "action": "A wise man once said, 'Don't believe everything that you read on the internet'. That man was Albert Einstein.",
+            "type": "none",
+            "amount": "none"
+        },
+        {
+            "action": "You see a large windmill overlooking a vast expanse of hilly countryside. Several cobblestone cottages dot the wildflower painted hillsides. How beautiful.",
+            "type": "xp",
+            "amount": 1
+        },
+        {
+            "action": "If it works, it works. Don't ever question it, no matter how weird or how impossible it seems.",
+            "type": "xp",
+            "amount": 4
+        },
+        {
+            "action": "A wise man and a priest walk into a bar. You decide to go under it.",
+            "type": "xp",
+            "amount": 3
+        },
+        {
+            "action": "You realize you have the ability to tell if a box or crate is empty just by looking at it.",
+            "type": "xp",
+            "amount": 4
+        },
+        {
+            "action": "You trip immediately after taking one step outside.",
+            "type": "xp",
+            "amount": 1
+        },
+        {
+            "action": "You find a holy book on the ground. It is covered in dust. You feel stronger and more enlightened as you read it.",
+            "type": "xp",
+            "amount": 6
+        },
+        {
+            "action": "When you were born, the doctor exclaimed 'It's a man!'.",
+            "type": "xp",
+            "amount": 1
+        },
+        {
+            "action": "You bravely battle against an Ogre. But an arrow from someoneelse's bow stole your kill. You get no rewards.",
+            "type": "xp",
+            "amount": 2
+        },
+        {
+            "action": "You wonder why this journey requires you to take one step at a time for something to happen. You forget about it, and keep walking. One. Step. At. A. Time.",
+            "type": "none",
+            "amount": "none"
+        },
+        {
+            "action": "You lose your virginity before your dad.",
+            "type": "xp",
+            "amount": 6
+        },
+        {
+            "action": "You don't have to be afraid of zombies as they eat brains.",
+            "type": "xp",
+            "amount": 1
+        },
+        {
+            "action": "You negotiate peace between two bandit camps. You steal from them both and turn them on eachother after.",
+            "type": "gold",
+            "amount": 3
+        },
+        {
+            "action": "Goblin",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Goblin",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Goblin",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Goblin",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Goblin",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Tem",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "JezzaR (The Creator)",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Ant",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Ant",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Ant",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Ant",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Ant",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Wolf",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Wolf",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Wolf",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Wolf",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Wolf",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Tiger",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Tiger",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Tiger",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Hobbit",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Hobbit",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Kobold",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Kobold",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Kobold",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Kobold",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Orc",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Orc",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Orc",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Orc",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Orc",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Orc",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Bat",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Bat",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Bat",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Bat",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Dragon",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Giant",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Naga",
+            "type": "enemy",
+            "amount": 1
+        },
+        {
+            "action": "Dagger",
+            "type": "item",
+            "amount": 1
+        },
+        {
+            "action": "Longsword",
+            "type": "item",
+            "amount": 1
+        },
+        {
+            "action": "Shirt",
+            "type": "item",
+            "amount": 1
+        },
+        {
+            "action": "Chainmail",
+            "type": "item",
+            "amount": 1
+        },
+        {
+            "action": "Boots",
+            "type": "item",
+            "amount": 1
+        },
+        {
+            "action": "Shiny Boots",
+            "type": "item",
+            "amount": 1
+        },
+        {
+            "action": "Golden Pan",
+            "type": "item",
+            "amount": 1
+        },
+        {
+            "action": "Shield",
+            "type": "item",
+            "amount": 1
+        },
+        {
+            "action": "Helmet",
+            "type": "item",
+            "amount": 1
+        },
+        {
+            "action": "Better Helmet",
+            "type": "item",
+            "amount": 1
+        }
+    ]
+}
