@@ -30,7 +30,7 @@ helpPage = 1
 helpInit = ""
 helpMsg = ""
 helpInitId = ""
-maxPages = 9
+maxPages = 11
 enemyCurrentHP, enemyDef, enemyAtk, enemySpd, atk, defence, spd, currentHP, enemyLevel, enemyDamage, damage, fightMsg = 0,0,0,0,0,0,0,0,0,0,0,0
 exploreOptions = json.load(open("exploreOptions.json"))
 
@@ -69,6 +69,14 @@ help8.set_footer(text=f"Page 8 of {maxPages}")
 help9 = discord.Embed(title="RPGBot Help | Guild Help Cont.",description="Guild Commands:\nguild create - Make a new guild.\nguild join (name) - Join the guild called (name).\nguild deposit (amount) - Deposit (amount) into the guild's bank.\nguild withdraw (amount) - Withdraw (amount) from the guild's bank.\nguild balance - View your guild's balance.",color=0x00ff99)
 help9.set_thumbnail(url="https://i.imgur.com/3eW4kff.png")
 help9.set_footer(text=f"Page 9 of {maxPages}")
+
+help10 = discord.Embed(title="RPGBot Help | Explore help",description="Exploring is a way to earn gold and xp easily. You can come across enemies, items or just free xp/gold\nYou can explore by using `explore`",color=0x00ff99)
+help10.set_thumbnail(url="https://i.imgur.com/3eW4kff.png")
+help10.set_footer(text=f"Page 10 of {maxPages}")
+
+help11 = discord.Embed(title="RPGBot Help | Inventory Help",description="All the items you collect on your adventure get stored inside your inventory\nYou can view your inventory by using `inv` or `inventory`",color=0x00ff99)
+help11.set_thumbnail(url="https://i.imgur.com/3eW4kff.png")
+help11.set_footer(text=f"Page 11 of {maxPages}")
 
 createName = discord.Embed(title="Create a Character!",description="What name would you like for your character? (Less than 15 characters)\n***NOTE***\nWith the creation of a character, you agree to these rules:\n1) No abusing or benefiting from bugs or exploits\n2) Be friendly and kind to other players\n3) Trading in-game items or currency for real money or items directly comparable to currency is forbidden",color=0x00ff99)
 
@@ -171,6 +179,34 @@ async def create(ctx):
     userCursor.execute("INSERT INTO users (userID, name, guild, class, signupDate, money, str, def, spd, currentHP, hp, level, xp) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",(ctx.author.id, playerName, None, playerClass, datetime.now().strftime("%d-%m-%Y %H:%M:%S"), 100, playerStr, playerDef, playerSpd, playerHP, playerHP, 1, 0))
     userDB.commit()
     await ctx.send("Character created! Have fun!")
+
+@client.command(aliases=["inventory"])
+async def inv(ctx, *member: discord.Member):
+    print(member)
+    if member == ():
+        user = ctx.author.id
+        nick = ctx.author.nick
+    else:
+        member = member[0]
+        user = member.id
+        nick = member.nick
+    userCursor.execute("SELECT inv FROM inventories WHERE userID = ?",(user,))
+    currentInv = userCursor.fetchall()[0][0]
+    if currentInv == None:
+        await ctx.send("You have nothing in your inventory.")
+        return
+    currentInv = currentInv.split(",")
+    msg = ""
+    count = 0
+    while count < len(currentInv):
+        print(currentInv[count+1])
+        if currentInv[count+1] == "1":
+            msg += f"\n{currentInv[count+1]} {currentInv[count]}"
+        else:
+            msg += f"\n{currentInv[count+1]} {currentInv[count]}s"
+        count += 2
+    embed = discord.Embed(title=f"{nick}'s Inventory",description=msg)
+    await ctx.send("",embed=embed)
 
 @client.command()
 async def delete(ctx):
@@ -679,7 +715,7 @@ async def on_reaction_add(reaction, user):
         if reaction.message == helpMsg:
             if user == helpInit:
                 await reaction.remove(user)
-                if helpPage == 9:
+                if helpPage == maxPages:
                     helpChanged = False
                     return
                 else:
