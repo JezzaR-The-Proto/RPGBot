@@ -1,13 +1,14 @@
 # RPGBot
 # Discord bot that allows users to have an RPG-like experience.
 # Created by JezzaR The Protogen#6483
-import sqlite3, random, discord, logging, shutil, os, asyncio, requests, json
+import sqlite3, random, discord, logging, shutil, os, asyncio, requests, json, math
 from discord.ext import commands, tasks
 from discord.utils import get
 from datetime import datetime
 from itertools import cycle
 from time import sleep
 from PIL import Image, ImageFont, ImageDraw
+from humanfriendly import format_timespan
 
 # Init the DB
 userDB = sqlite3.connect("users.db")
@@ -101,6 +102,7 @@ async def change_status(): # Changing status
     await client.change_presence(activity=discord.Game(next(status)))
 
 @client.command()
+@commands.cooldown(1,5,commands.BucketType.user)
 async def help(ctx):
     global helpMsg, helpInit, helpPage, helpInitId
     helpPage = 1
@@ -113,6 +115,7 @@ async def help(ctx):
     logs(ctx.author,"help")
 
 @client.command()
+@commands.cooldown(1,60,commands.BucketType.user)
 async def create(ctx):
     def is_correct(m):
         return m.author == ctx.author
@@ -181,8 +184,8 @@ async def create(ctx):
     await ctx.send("Character created! Have fun!")
 
 @client.command(aliases=["inventory"])
+@commands.cooldown(1,10,commands.BucketType.user)
 async def inv(ctx, *member: discord.Member):
-    print(member)
     if member == ():
         user = ctx.author.id
         nick = ctx.author.nick
@@ -209,6 +212,7 @@ async def inv(ctx, *member: discord.Member):
     await ctx.send("",embed=embed)
 
 @client.command()
+@commands.cooldown(1,120,commands.BucketType.user)
 async def delete(ctx):
     userCursor.execute("SELECT name FROM users WHERE userID = ?",(ctx.author.id,))
     alreadyGotCharacter = userCursor.fetchall()
@@ -235,6 +239,7 @@ async def delete(ctx):
         await ctx.send("Character deleted. 😢")
 
 @client.command()
+@commands.cooldown(1,15,commands.BucketType.user)
 async def profile(ctx):
     img = requests.get(ctx.author.avatar_url_as(format="jpg",size=64))
     with open(os.path.join(currentFolder,"userAvatar.jpg"),"wb") as image:
@@ -308,6 +313,7 @@ async def profile(ctx):
     await ctx.send("",file=discord.File("userProfile.png"))
 
 @client.command()
+@commands.cooldown(1,5,commands.BucketType.user)
 async def guild(ctx, *guildArgs):
     try:
         args = guildArgs[0]
@@ -473,6 +479,7 @@ async def guild(ctx, *guildArgs):
         await ctx.send(f"You have left {guildName.capitalize()}.")
 
 @client.command()
+@commands.cooldown(1,10,commands.BucketType.user)
 async def explore(ctx):
     exploreVar = random.randint(0,99)
     whatHappened = exploreOptions["options"][exploreVar]["action"]
@@ -758,5 +765,18 @@ async def on_reaction_add(reaction, user):
             await helpMsg.edit(content="",embed=help9)
         helpChanged = False
 
+@client.event
+async def on_command_error(ctx, error):
+    ignored = (commands.CommandNotFound, commands.UserInputError)
+    if hasattr(ctx.command,"on_error"):
+        return
+    error = getattr(error, 'original', error)
+    if isinstance(error, ignored):
+        return
+    elif isinstance(error, commands.CommandOnCooldown):
+        seconds = math.ceil(error.retry_after)
+        towait = format_timespan(seconds)
+        return await ctx.send(f"Woah woah, slow down there, you have to wait {towait} seconds to do this command again.")
+
 # Start Discord Bot
-client.run("Epic Bot Token Goes Here")
+client.run("bot token goes here")

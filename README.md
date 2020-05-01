@@ -4,7 +4,7 @@
 **REQUIREMENTS:**
 - Python 3.7 or later.
 - Python Modules:
-	- discord.py, requests, logging, PIL(Pillow), asyncio.
+	- discord.py, requests, logging, PIL(Pillow), asyncio, humanfriendly
 - At least 10MB of storage.
 ## Setup
 - Clone the repo
