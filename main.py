@@ -227,10 +227,141 @@ async def battle(ctx, *member: discord.Member):
         await ctx.send("You do not have a character so you cannot fight.")
         return
     userCursor.execute("SELECT name FROM users WHERE userID = ?",(member.id,))
-    alreadyGotCharacter = userCursor.fetchall()
-    if alreadyGotCharacter == []:
+    gotCharacter = userCursor.fetchall()
+    if gotCharacter == []:
         await ctx.send(f"<@{member.id}> does not have a character so you cannot fight them.")
         return
+    battleEmbed = discord.Embed(title=f"1v1 between `{ctx.author}` and `{member.name}`",description="")
+    battleMsg = await ctx.send("",embed=battleEmbed)
+    await battleMsg.add_reaction("⚔️")
+    await battleMsg.add_reaction("🛡️")
+    await battleMsg.add_reaction("🏃")
+    userCursor.execute("SELECT str FROM users WHERE userID = ?",(ctx.author.id,))
+    atk = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT def FROM users WHERE userID = ?",(ctx.author.id,))
+    defence = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT spd FROM users WHERE userID = ?",(ctx.author.id,))
+    spd = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT hp FROM users WHERE userID = ?",(ctx.author.id,))
+    hp = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT str FROM users WHERE userID = ?",(member.id,))
+    enemyAtk = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT def FROM users WHERE userID = ?",(member.id,))
+    enemyDefence = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT spd FROM users WHERE userID = ?",(member.id,))
+    enemySpd = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT hp FROM users WHERE userID = ?",(member.id,))
+    enemyHp = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT name FROM users WHERE userID = ?",(member.id,))
+    enemyName = userCursor.fetchall()[0][0]
+    currentTurn = ctx.author.id
+    def check(reaction, user):
+        if user == currentTurn: 
+            if str(reaction.emoji) == '⚔️':
+                return True
+            elif str(reaction.emoji) == "🛡️":
+                return True
+            elif str(reaction.emoji) == "🏃":
+                return True
+            else:
+                return False
+        else:
+            return False
+    fighting = True
+    while fighting:
+        try:
+            reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
+        except asyncio.TimeoutError:
+            await ctx.send("You took too long without doing anything!")
+            return
+        if str(reaction.emoji) == "⚔️":
+            await reaction.remove(user)
+            if spd >= enemySpd:
+                damageEnemy()
+                embed = redrawFightEmbed(ctx.author.id, enemyName)
+                await fightMsg.edit(content="",embed=embed)
+            else:
+                damagePlayer(ctx.author.id)
+                damageEnemy()
+                embed = redrawFightEmbed(ctx.author.id, enemyName)
+                await fightMsg.edit(content="",embed=embed)
+        elif str(reaction.emoji) == "🛡️":
+            defence += 5
+            await reaction.remove(user)
+            if spd >= enemySpd:
+                damageEnemy()
+                damagePlayer(ctx.author.id)
+                embed = redrawFightEmbed(ctx.author.id, enemyName)
+                await fightMsg.edit(content="",embed=embed)
+            else:
+                damagePlayer(ctx.author.id)
+                damageEnemy()
+                embed = redrawFightEmbed(ctx.author.id, enemyName)
+                await fightMsg.edit(content="",embed=embed)
+            defence -= 5
+        elif str(reaction.emoji) == "🏃":
+            if spd - 10 >= enemySpd:
+                await fightMsg.edit(content="You successfully ran from `test enemy`!")
+            elif spd < enemySpd:
+                await fightMsg.edit(content="Your speed is too low, `test enemy` caught you running away!")
+                sleep(1)
+                damagePlayer(ctx.author.id)
+                embed = redrawFightEmbed(ctx.author.id, enemyName)
+                await fightMsg.edit(content="",embed=embed)
+            elif spd == enemySpd:
+                runAway = random.randint(0,1)
+                if runAway == 1:
+                    await fightMsg.edit(content="You successfully ran from `test enemy`!")
+                else:
+                    await fightMsg.edit(content="You have an equal speed to `test enemy` but they caught up to you!")
+                    sleep(1)
+                    damagePlayer(ctx.author.id)
+                    embed = redrawFightEmbed(ctx.author.id, enemyName)
+                    await fightMsg.edit(content="",embed=embed)
+            else:
+                spdDiff = (spd - enemySpd)*10
+                runAway = random.randint(0,100)
+                if runAway <= spdDiff:
+                    await fightMsg.edit(content="You successfully ran from `test enemy`!")
+                else:
+                    await fightMsg.edit(content="You ran as fast as you could, but couldn't escape!")
+                    sleep(1)
+                    damagePlayer(ctx.author.id)
+                    embed = redrawFightEmbed(ctx.author.id, enemyName)
+                    await fightMsg.edit(content="",embed=embed)
+        if currentHP <= 0:
+            await fightMsg.edit(content="Oh no! You died!\nYou have lost half of your coins and all of your items.")
+            userCursor.execute("SELECT money FROM users WHERE userID = ?",(ctx.author.id,))
+            money = userCursor.fetchall()[0][0]
+            money = money // 2
+            userCursor.execute("UPDATE users SET money = ? WHERE userID = ?",(money, ctx.author.id))
+            userDB.commit()
+            userCursor.execute("SELECT hp FROM users WHERE userID = ?",(ctx.author.id,))
+            hp = userCursor.fetchall()[0][0]
+            userCursor.execute("UPDATE users SET currentHP = ? WHERE userID = ?",(hp,ctx.author.id))
+            userDB.commit()
+        elif enemyCurrentHP <= 0:
+            fighting = False
+    xp = random.randint(5,15)
+    gold = random.randint(1,10)
+    userCursor.execute("SELECT xp FROM users WHERE userID = ?",(ctx.author.id,))
+    currentXP = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT money FROM users WHERE userID = ?",(ctx.author.id,))
+    currentMoney = userCursor.fetchall()[0][0]
+    currentXP += xp
+    userCursor.execute("SELECT level FROM users WHERE userID = ?",(ctx.author.id,))
+    currentLevel = userCursor.fetchall()[0][0]
+    if currentXP > xpRequired[currentLevel]:
+        currentXP -= xpRequired[currentLevel]
+        currentLevel += 1
+        userCursor.execute("UPDATE users SET level = ? WHERE userID = ?",(currentLevel,ctx.author.id))
+        await ctx.send(f"Congratulations! You levelled up! You are now level {currentLevel}")
+    currentMoney += gold
+    userCursor.execute("UPDATE users SET xp = ? WHERE userID = ?",(currentXP,ctx.author.id))
+    userDB.commit()
+    userCursor.execute("UPDATE users SET money = ? WHERE userID = ?",(currentMoney,ctx.author.id))
+    userDB.commit()
+    await fightMsg.edit(content=f"Congrats! You beat `test enemy`! You earned {xp} xp and {gold} gold!")
 
 @client.command()
 @commands.cooldown(1,120,commands.BucketType.user)
@@ -671,6 +802,8 @@ def damageEnemy():
 
 def damagePlayer(player):
     global currentHP, damage
+    userCursor.execute("SELECT currentHP FROM users WHERE userID = ?",(player,))
+    currentHP = userCursor.fetchall()[0][0]
     if enemyAtk - defence <= 0:
         damage = 0
     else:
