@@ -329,8 +329,12 @@ async def battle(ctx, *member: discord.Member):
                     damagePlayer(ctx.author.id)
                     embed = redrawFightEmbed(ctx.author.id, enemyName)
                     await fightMsg.edit(content="",embed=embed)
+        if currentTurn == ctx.author.id:
+            currentTurn = member.id
+        else:
+            currentTurn = ctx.author.id
         if currentHP <= 0:
-            await fightMsg.edit(content="Oh no! You died!\nYou have lost half of your coins and all of your items.")
+            await fightMsg.edit(content=f"`{ctx.author.name}` has lost the fight. They lose half of their coins.")
             userCursor.execute("SELECT money FROM users WHERE userID = ?",(ctx.author.id,))
             money = userCursor.fetchall()[0][0]
             money = money // 2
@@ -340,28 +344,19 @@ async def battle(ctx, *member: discord.Member):
             hp = userCursor.fetchall()[0][0]
             userCursor.execute("UPDATE users SET currentHP = ? WHERE userID = ?",(hp,ctx.author.id))
             userDB.commit()
-        elif enemyCurrentHP <= 0:
             fighting = False
-    xp = random.randint(5,15)
-    gold = random.randint(1,10)
-    userCursor.execute("SELECT xp FROM users WHERE userID = ?",(ctx.author.id,))
-    currentXP = userCursor.fetchall()[0][0]
-    userCursor.execute("SELECT money FROM users WHERE userID = ?",(ctx.author.id,))
-    currentMoney = userCursor.fetchall()[0][0]
-    currentXP += xp
-    userCursor.execute("SELECT level FROM users WHERE userID = ?",(ctx.author.id,))
-    currentLevel = userCursor.fetchall()[0][0]
-    if currentXP > xpRequired[currentLevel]:
-        currentXP -= xpRequired[currentLevel]
-        currentLevel += 1
-        userCursor.execute("UPDATE users SET level = ? WHERE userID = ?",(currentLevel,ctx.author.id))
-        await ctx.send(f"Congratulations! You levelled up! You are now level {currentLevel}")
-    currentMoney += gold
-    userCursor.execute("UPDATE users SET xp = ? WHERE userID = ?",(currentXP,ctx.author.id))
-    userDB.commit()
-    userCursor.execute("UPDATE users SET money = ? WHERE userID = ?",(currentMoney,ctx.author.id))
-    userDB.commit()
-    await fightMsg.edit(content=f"Congrats! You beat `test enemy`! You earned {xp} xp and {gold} gold!")
+        elif enemyCurrentHP <= 0:
+            await fightMsg.edit(content=f"`{member.name}` has lost the fight. They lose half of their coins.")
+            userCursor.execute("SELECT money FROM users WHERE userID = ?",(member.id,))
+            money = userCursor.fetchall()[0][0]
+            money = money // 2
+            userCursor.execute("UPDATE users SET money = ? WHERE userID = ?",(money, member.id))
+            userDB.commit()
+            userCursor.execute("SELECT hp FROM users WHERE userID = ?",(member.id,))
+            hp = userCursor.fetchall()[0][0]
+            userCursor.execute("UPDATE users SET currentHP = ? WHERE userID = ?",(hp,member.id))
+            userDB.commit()
+            fighting = False
 
 @client.command()
 @commands.cooldown(1,120,commands.BucketType.user)
