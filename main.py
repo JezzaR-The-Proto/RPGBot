@@ -213,24 +213,42 @@ async def inv(ctx, *member: discord.Member):
 
 @client.command()
 @commands.cooldown(1,120,commands.BucketType.user)
+async def battle(ctx, *member: discord.Member):
+    if member == ():
+        await ctx.send("You need to ping who you want to fight!")
+        return
+    member = member[0]
+    if member.id == ctx.author.id:
+        await ctx.send("You cannot fight yourself!")
+        return
+    userCursor.execute("SELECT name FROM users WHERE userID = ?",(ctx.author.id,))
+    alreadyGotCharacter = userCursor.fetchall()
+    if alreadyGotCharacter == []:
+        await ctx.send("You do not have a character so you cannot fight.")
+        return
+    userCursor.execute("SELECT name FROM users WHERE userID = ?",(member.id,))
+    alreadyGotCharacter = userCursor.fetchall()
+    if alreadyGotCharacter == []:
+        await ctx.send(f"<@{member.id}> does not have a character so you cannot fight them.")
+        return
+
+@client.command()
+@commands.cooldown(1,120,commands.BucketType.user)
 async def delete(ctx):
     userCursor.execute("SELECT name FROM users WHERE userID = ?",(ctx.author.id,))
     alreadyGotCharacter = userCursor.fetchall()
     if alreadyGotCharacter == []:
         await ctx.send("You do not have a character. Do `rpg create` to make one.")
         return
-    
     await ctx.send("Are you ***sure*** you want to delete your character.\n***THIS CANNOT BE UNDONE***\n`y` or `n`")
 
     def is_correct(m):
         return m.author == ctx.author
-
     try:
         playerClass = await client.wait_for('message', check=is_correct, timeout=15.0)
         playerClass = playerClass.content
     except asyncio.TimeoutError:
         await ctx.send("You took too long! Deletion cancelled.")
-    
     if playerClass != "y":
         await ctx.send("Deletion cancelled")
     else:
@@ -264,9 +282,8 @@ async def profile(ctx):
     draw.text((26, 72),str(tempText),(255,255,255),font=font)
     draw.text((146, 72),str(tempText + 1),(255,255,255),font=font)
 
-    userCursor.execute("SELECT level FROM users WHERE userID = ?",(ctx.author.id,))
-    exp = userCursor.fetchall()
-    exp = exp[0][0]
+    userCursor.execute("SELECT xp FROM users WHERE userID = ?",(ctx.author.id,))
+    exp = userCursor.fetchall()[0][0]
     levelProgressBar = 42 + round((exp/xpRequired[tempText])*100,0)
     draw.line((42,84,142,84), fill=(150,150,150), width=10)
     draw.line((42,84,int(levelProgressBar),84), fill=(255,255,255), width=10)
@@ -485,6 +502,28 @@ async def explore(ctx):
     whatHappened = exploreOptions["options"][exploreVar]["action"]
     if exploreVar >= 0 and exploreVar <= 49:
         await ctx.send(whatHappened)
+        type = exploreOptions["options"][exploreVar]["type"]
+        amount = exploreOptions["options"][exploreVar]["amount"]
+        if type == "gold":
+            userCursor.execute("SELECT money FROM users WHERE userID = ?",(ctx.author.id,))
+            currentMoney = userCursor.fetchall()[0][0]
+            currentMoney += amount
+            userCursor.execute("UPDATE users SET money = ? WHERE userID = ?",(currentMoney,ctx.author.id))
+            userDB.commit()
+        elif type == "xp":
+            userCursor.execute("SELECT xp FROM users WHERE userID = ?",(ctx.author.id,))
+            currentXp = userCursor.fetchall()[0][0]
+            currentXp += amount
+            userCursor.execute("SELECT level FROM users WHERE userID = ?",(ctx.author.id,))
+            currentLevel = userCursor.fetchall()[0][0]
+            if currentXp > xpRequired[currentLevel]:
+                currentXp -= xpRequired[currentLevel]
+                currentLevel += 1
+                userCursor.execute("UPDATE users SET level = ? WHERE userID = ?",(currentLevel,ctx.author.id))
+                await ctx.send(f"Congratulations! You levelled up! You are now level {currentLevel}")
+            userCursor.execute("UPDATE users SET xp = ? WHERE userID = ?",(currentXp,ctx.author.id))
+            userDB.commit()
+        await ctx.send(f"You earned {amount} {type}!")
     elif exploreVar >= 50 and exploreVar <= 89:
         await npcFight(ctx, whatHappened)
     else:
@@ -614,6 +653,7 @@ async def npcFight(ctx, enemyName):
         currentXP -= xpRequired[currentLevel]
         currentLevel += 1
         userCursor.execute("UPDATE users SET level = ? WHERE userID = ?",(currentLevel,ctx.author.id))
+        await ctx.send(f"Congratulations! You levelled up! You are now level {currentLevel}")
     currentMoney += gold
     userCursor.execute("UPDATE users SET xp = ? WHERE userID = ?",(currentXP,ctx.author.id))
     userDB.commit()
@@ -779,4 +819,4 @@ async def on_command_error(ctx, error):
         return await ctx.send(f"Woah woah, slow down there, you have to wait {towait} seconds to do this command again.")
 
 # Start Discord Bot
-client.run("bot token goes here")
+client.run("epic bot token area")
