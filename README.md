@@ -13,5 +13,9 @@
 - Run main.py
 ## Todo list:
 https://github.com/JezzaR-The-Proto/RPGBot/issues/1
+## Support Server:
+https://discord.gg/NWdCX57
+## Invite Link:
+https://discordapp.com/oauth2/authorize?client_id=702276038314688593&permissions=336055360&scope=bot
 ## Credits
 - Me (JezzaR the Protogen#6483) - Code
