@@ -34,6 +34,7 @@ helpInitId = ""
 maxPages = 11
 enemyCurrentHP, enemyDef, enemyAtk, enemySpd, atk, defence, spd, currentHP, enemyLevel, enemyDamage, damage, fightMsg = 0,0,0,0,0,0,0,0,0,0,0,0
 exploreOptions = json.load(open("exploreOptions.json"))
+messagePath = os.path.join(currentFolder,"msgs")
 
 help1 = discord.Embed(title='RPGBot Help | Welcome', description="Welcome to RPGBot!\nI am currently still in development so bugs are expected.\n\nTo start, use `rpg create` to make a character!\nReact below to move through help pages.",color=0x00ff99)
 help1.set_thumbnail(url="https://i.imgur.com/3eW4kff.png")
@@ -83,11 +84,6 @@ createName = discord.Embed(title="Create a Character!",description="What name wo
 
 createClass = discord.Embed(title="Create a Character!",description="What class would you like your character to be?\n(Warrior, Archer, Rouge, Druid, Mage)",color=0x00ff99)
 
-def logs(author,reason): # Easier way to log
-    with open("main.log", "a") as myfile:
-        currentTime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        myfile.write(f"[{currentTime}]: {author} sent {prefix}{reason}\n")
-
 @client.event
 async def on_ready(): # Log when bot starts up
     change_status.start()
@@ -112,7 +108,6 @@ async def help(ctx):
     await helpMsg.add_reaction("◀️")
     await helpMsg.add_reaction("⏹")
     await helpMsg.add_reaction("▶️")
-    logs(ctx.author,"help")
 
 @client.command()
 @commands.cooldown(1,60,commands.BucketType.user)
@@ -219,18 +214,15 @@ async def delete(ctx):
     if alreadyGotCharacter == []:
         await ctx.send("You do not have a character. Do `rpg create` to make one.")
         return
-    
     await ctx.send("Are you ***sure*** you want to delete your character.\n***THIS CANNOT BE UNDONE***\n`y` or `n`")
 
     def is_correct(m):
         return m.author == ctx.author
-
     try:
         playerClass = await client.wait_for('message', check=is_correct, timeout=15.0)
         playerClass = playerClass.content
     except asyncio.TimeoutError:
         await ctx.send("You took too long! Deletion cancelled.")
-    
     if playerClass != "y":
         await ctx.send("Deletion cancelled")
     else:
@@ -264,9 +256,8 @@ async def profile(ctx):
     draw.text((26, 72),str(tempText),(255,255,255),font=font)
     draw.text((146, 72),str(tempText + 1),(255,255,255),font=font)
 
-    userCursor.execute("SELECT level FROM users WHERE userID = ?",(ctx.author.id,))
-    exp = userCursor.fetchall()
-    exp = exp[0][0]
+    userCursor.execute("SELECT xp FROM users WHERE userID = ?",(ctx.author.id,))
+    exp = userCursor.fetchall()[0][0]
     levelProgressBar = 42 + round((exp/xpRequired[tempText])*100,0)
     draw.line((42,84,142,84), fill=(150,150,150), width=10)
     draw.line((42,84,int(levelProgressBar),84), fill=(255,255,255), width=10)
@@ -315,6 +306,8 @@ async def profile(ctx):
 @client.command()
 @commands.cooldown(1,5,commands.BucketType.user)
 async def guild(ctx, *guildArgs):
+    guildAppsPath = os.path.join(currentFolder,"guildApplications")
+    args2 = ""
     try:
         args = guildArgs[0]
     except:
@@ -324,8 +317,6 @@ async def guild(ctx, *guildArgs):
         args2 = guildArgs[1]
     except:
         noSecondArgs = True
-        if noSecondArgs:
-            noSecondArgs = False
 
     def is_correct(m):
         return m.author == ctx.author
@@ -357,6 +348,20 @@ async def guild(ctx, *guildArgs):
             if guildName == name:
                 await ctx.send("A guild with this name already exists. Please retry.")
                 return
+        await ctx.send("Would you like your guild to be:\nPublic (anyone can join) or Private (users have to apply)?")
+        try:
+            guildPrivacy = await client.wait_for('message', check=is_correct, timeout=15.0)
+            guildPrivacy = guildName.content
+        except asyncio.TimeoutError:
+            await ctx.send("You took too long! Guild creation cancelled.")
+            return
+        if guildPrivacy.lower() == "public":
+            guildPrivacy = 0
+        elif guildPrivacy.lower() == "private":
+            guildPrivacy = 1
+        else:
+            await ctx.send("Please enter `Public` or `Private` for the privacy.\nGuild creation cancelled.")
+            return
         userCursor.execute("SELECT guildID FROM guilds")
         guildIDs = userCursor.fetchall()
         if guildIDs == []:
@@ -365,7 +370,7 @@ async def guild(ctx, *guildArgs):
             lastID = guildIDs[-1]
             lastID = lastID[0]
             guildID = lastID + 1
-        userCursor.execute("INSERT INTO guilds(guildID, masterID, name, users, money, level, xp) VALUES(?,?,?,?,?,?,?)",(guildID, ctx.author.id,guildName,1,0,1,0))
+        userCursor.execute("INSERT INTO guilds(guildID, masterID, name, users, money, level, xp, private) VALUES(?,?,?,?,?,?,?,?)",(guildID, ctx.author.id,guildName,1,0,1,0,guildPrivacy))
         userDB.commit()
         userCursor.execute("UPDATE users SET guild = ? WHERE userID = ?",(guildID, ctx.author.id))
         userDB.commit()
@@ -390,15 +395,32 @@ async def guild(ctx, *guildArgs):
             await ctx.send("There is no guild with this name (Guild names are case sensitive).")
             return
         userGuild = userGuild[0][0]
-        userCursor.execute("UPDATE users SET guild = ? WHERE userID = ?",(userGuild, ctx.author.id))
-        userDB.commit()
-        userCursor.execute("SELECT users FROM guilds WHERE guildID = ?",(userGuild,))
-        guildUsers = userCursor.fetchall()
-        guildUsers = guildUsers[0][0]
-        guildUsers += 1
-        userCursor.execute("UPDATE guilds SET users = ? WHERE guildID = ?",(guildUsers, userGuild))
-        userDB.commit()
-        await ctx.send("Successfully joined guild!")
+        userCursor.execute("SELECT private FROM guilds WHERE guildID = ?",(userGuild,))
+        guildPrivacy = userCursor.fetchall()[0][0]
+        if guildPrivacy == 0:
+            userCursor.execute("UPDATE users SET guild = ? WHERE userID = ?",(userGuild, ctx.author.id))
+            userDB.commit()
+            userCursor.execute("SELECT users FROM guilds WHERE guildID = ?",(userGuild,))
+            guildUsers = userCursor.fetchall()
+            guildUsers = guildUsers[0][0]
+            guildUsers += 1
+            userCursor.execute("UPDATE guilds SET users = ? WHERE guildID = ?",(guildUsers, userGuild))
+            userDB.commit()
+            await ctx.send("Successfully joined guild!")
+        else:
+            with open(os.path.join(guildAppsPath,f"{userGuild}.msg"),"a") as msgFile:
+                userCursor.execute("SELECT str FROM users WHERE userID = ?",(ctx.author.id,))
+                userAtk = userCursor.fetchall()[0][0]
+                userCursor.execute("SELECT hp FROM users WHERE userID = ?",(ctx.author.id,))
+                userHp = userCursor.fetchall()[0][0]
+                userCursor.execute("SELECT level FROM users WHERE userID = ?",(ctx.author.id,))
+                userLevel = userCursor.fetchall()[0][0]
+                userCursor.execute("SELECT money FROM users WHERE userID = ?",(ctx.author.id,))
+                userMoney = userCursor.fetchall()[0][0]
+                currentTime = datetime.now().strftime('%H:%M:%S %d-%m-%Y')
+                msgFile.write(f"{ctx.author}|{userAtk}|{userHp}|{userLevel}|{userMoney}|{currentTime}|{ctx.author.id}")
+                msgFile.close()
+            await ctx.send("This guild is private. You have sent an application.\nPlease wait for it to be accepted/declined.")
     elif args == "list":
         userCursor.execute("SELECT name FROM guilds ORDER BY users DESC")
         guilds = userCursor.fetchall()
@@ -477,6 +499,101 @@ async def guild(ctx, *guildArgs):
         userCursor.execute("SELECT name FROM guilds WHERE guildID = ?",(userGuild,))
         guildName = userCursor.fetchall()[0][0]
         await ctx.send(f"You have left {guildName.capitalize()}.")
+    elif args == "applications":
+        count = 1
+        if args2 == "":
+            userCursor.execute("SELECT guildID FROM guilds WHERE masterID = ?",(ctx.author.id,))
+            try:
+                guildID = userCursor.fetchall()[0][0]
+            except IndexError:
+                await ctx.send("You do not own a guild. Only guild leaders can check applications.")
+                return
+            with open(os.path.join(guildAppsPath,f"{guildID}.msg"),"r") as appsFile:
+                applications = appsFile.read()
+                if applications == "":
+                    await ctx.send("There are no current applications to your guild.")
+                    return
+                applications = applications.splitlines()
+                finalMsg = ""
+                for app in applications:
+                    stats = app.split("|")
+                    finalMsg = f"Application {count}: `{stats[0]}` applied to your guild on `{stats[5]}`.\nThey are level `{stats[3]}` and have `{stats[1]}` strength, `{stats[2]}` health and `{stats[4]}` gold.\n"
+                    application = await ctx.send(finalMsg)
+                    await application.add_reaction("❎")
+                    await application.add_reaction("✅")
+                    def correct_reaction(reaction, user):
+                        if user == ctx.author: 
+                            if str(reaction.emoji) == '❎':
+                                return True
+                            elif str(reaction.emoji) == "✅":
+                                return True
+                            else:
+                                return False
+                        else:
+                            return False
+                    try:
+                        reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=correct_reaction)
+                    except asyncio.TimeoutError:
+                        await ctx.send("You took too long without doing anything!")
+                        return
+                    if str(reaction.emoji) == "❎":
+                        continue
+                    else:
+                        userCursor.execute("UPDATE users SET guild = ? WHERE userID = ?",(guildID,stats[6]))
+                        userCursor.execute("SELECT users FROM guilds WHERE masterID = ?",(ctx.author.id,))
+                        guildUsers = userCursor.fetchall()[0][0]
+                        guildUsers += 1
+                        userCursor.execute("UPDATE guilds SET users = ? WHERE masterID = ?",(guildUsers,ctx.author.id))
+                        userDB.commit()
+                        await ctx.send(f"`{stats[0]}` has been accepted into the guild.")
+                    await application.delete()
+                open(os.path.join(guildAppsPath,f"{guildID}.msg"),"w").close()
+    else:
+        await ctx.send("That is not a valid option for guilds.")
+
+@client.command()
+@commands.cooldown(1,5,commands.BucketType.user)
+async def message(ctx, *member: discord.Member):
+    def is_correct(m):
+        return m.author == ctx.author
+    if member == ():
+        await ctx.send("You need to mention someone to send a message to!")
+        return
+    member = member[0]
+    with open(os.path.join(messagePath,f"{member.id}.msg"),"a") as msgFile:
+        await ctx.send("What would you like the message to say?")
+        try:
+            message = await client.wait_for('message', check=is_correct, timeout=60.0)
+            message = message.content
+        except asyncio.TimeoutError:
+            await ctx.send("You took too long! This message will not be sent.")
+            return
+        if message == "":
+            await ctx.send("You cannot send a blank message! This message will not be sent.")
+            return
+        currentTime = datetime.now().strftime('%H:%M:%S %d-%m-%Y')
+        msgToSend = f"{ctx.author}|{message}|{currentTime}\n"
+        msgFile.write(msgToSend)
+        msgFile.close()
+    await ctx.send(f"`{message}` was sent to {member}.")
+
+@client.command()
+@commands.cooldown(1,5,commands.BucketType.user)
+async def messages(ctx):
+    with open(os.path.join(messagePath,f"{ctx.author.id}.msg"),"r") as msgFile:
+        currentMsgs = msgFile.read()
+    allMsgs = currentMsgs.splitlines()
+    finalMsg = ""
+    for msg in allMsgs:
+        openMsg = msg.split("|")
+        finalMsg += f"`{openMsg[0]}` sent `{openMsg[1]}` at `{openMsg[2]}`\n"
+    await ctx.send(finalMsg)
+
+@client.command()
+@commands.cooldown(1,5,commands.BucketType.user)
+async def messageclear(ctx):
+    open(os.path.join(messagePath,f"{ctx.author.id}.msg"), "w").close()
+    await ctx.send("Your messages have been cleared.")
 
 @client.command()
 @commands.cooldown(1,10,commands.BucketType.user)
@@ -485,6 +602,28 @@ async def explore(ctx):
     whatHappened = exploreOptions["options"][exploreVar]["action"]
     if exploreVar >= 0 and exploreVar <= 49:
         await ctx.send(whatHappened)
+        type = exploreOptions["options"][exploreVar]["type"]
+        amount = exploreOptions["options"][exploreVar]["amount"]
+        if type == "gold":
+            userCursor.execute("SELECT money FROM users WHERE userID = ?",(ctx.author.id,))
+            currentMoney = userCursor.fetchall()[0][0]
+            currentMoney += amount
+            userCursor.execute("UPDATE users SET money = ? WHERE userID = ?",(currentMoney,ctx.author.id))
+            userDB.commit()
+        elif type == "xp":
+            userCursor.execute("SELECT xp FROM users WHERE userID = ?",(ctx.author.id,))
+            currentXp = userCursor.fetchall()[0][0]
+            currentXp += amount
+            userCursor.execute("SELECT level FROM users WHERE userID = ?",(ctx.author.id,))
+            currentLevel = userCursor.fetchall()[0][0]
+            if currentXp > xpRequired[currentLevel]:
+                currentXp -= xpRequired[currentLevel]
+                currentLevel += 1
+                userCursor.execute("UPDATE users SET level = ? WHERE userID = ?",(currentLevel,ctx.author.id))
+                await ctx.send(f"Congratulations! You levelled up! You are now level {currentLevel}")
+            userCursor.execute("UPDATE users SET xp = ? WHERE userID = ?",(currentXp,ctx.author.id))
+            userDB.commit()
+        await ctx.send(f"You earned {amount} {type}!")
     elif exploreVar >= 50 and exploreVar <= 89:
         await npcFight(ctx, whatHappened)
     else:
@@ -560,9 +699,9 @@ async def npcFight(ctx, enemyName):
             defence -= 5
         elif str(reaction.emoji) == "🏃":
             if spd - 10 >= enemySpd:
-                await fightMsg.edit(content="You successfully ran from `test enemy`!")
+                await fightMsg.edit(content=f"You successfully ran from `{enemyName}`!")
             elif spd < enemySpd:
-                await fightMsg.edit(content="Your speed is too low, `test enemy` caught you running away!")
+                await fightMsg.edit(content=f"Your speed is too low, `{enemyName}` caught you running away!")
                 sleep(1)
                 damagePlayer(ctx.author.id)
                 embed = redrawFightEmbed(ctx.author.id, enemyName)
@@ -570,9 +709,9 @@ async def npcFight(ctx, enemyName):
             elif spd == enemySpd:
                 runAway = random.randint(0,1)
                 if runAway == 1:
-                    await fightMsg.edit(content="You successfully ran from `test enemy`!")
+                    await fightMsg.edit(content=f"You successfully ran from `{enemyName}`!")
                 else:
-                    await fightMsg.edit(content="You have an equal speed to `test enemy` but they caught up to you!")
+                    await fightMsg.edit(content=f"You have an equal speed to `{enemyName}` but they caught up to you!")
                     sleep(1)
                     damagePlayer(ctx.author.id)
                     embed = redrawFightEmbed(ctx.author.id, enemyName)
@@ -581,7 +720,7 @@ async def npcFight(ctx, enemyName):
                 spdDiff = (spd - enemySpd)*10
                 runAway = random.randint(0,100)
                 if runAway <= spdDiff:
-                    await fightMsg.edit(content="You successfully ran from `test enemy`!")
+                    await fightMsg.edit(content=f"You successfully ran from `{enemyName}`!")
                 else:
                     await fightMsg.edit(content="You ran as fast as you could, but couldn't escape!")
                     sleep(1)
@@ -614,12 +753,13 @@ async def npcFight(ctx, enemyName):
         currentXP -= xpRequired[currentLevel]
         currentLevel += 1
         userCursor.execute("UPDATE users SET level = ? WHERE userID = ?",(currentLevel,ctx.author.id))
+        await ctx.send(f"Congratulations! You levelled up! You are now level {currentLevel}")
     currentMoney += gold
     userCursor.execute("UPDATE users SET xp = ? WHERE userID = ?",(currentXP,ctx.author.id))
     userDB.commit()
     userCursor.execute("UPDATE users SET money = ? WHERE userID = ?",(currentMoney,ctx.author.id))
     userDB.commit()
-    await fightMsg.edit(content=f"Congrats! You beat `test enemy`! You earned {xp} xp and {gold} gold!")
+    await fightMsg.edit(content=f"Congrats! You beat `{enemyName}`! You earned {xp} xp and {gold} gold!")
 
 def damageEnemy():
     global enemyCurrentHP, enemyDamage
@@ -631,6 +771,8 @@ def damageEnemy():
 
 def damagePlayer(player):
     global currentHP, damage
+    userCursor.execute("SELECT currentHP FROM users WHERE userID = ?",(player,))
+    currentHP = userCursor.fetchall()[0][0]
     if enemyAtk - defence <= 0:
         damage = 0
     else:
@@ -776,7 +918,7 @@ async def on_command_error(ctx, error):
     elif isinstance(error, commands.CommandOnCooldown):
         seconds = math.ceil(error.retry_after)
         towait = format_timespan(seconds)
-        return await ctx.send(f"Woah woah, slow down there, you have to wait {towait} seconds to do this command again.")
+        return await ctx.send(f"Woah woah, slow down there, you have to wait {towait} to do this command again.")
 
 # Start Discord Bot
-client.run("bot token goes here")
+client.run("epic bot token area")

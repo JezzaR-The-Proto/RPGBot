@@ -2,3 +2,5 @@ v1.0:
 Initial Release
 v1.1:
 Added cooldowns for commands and a couple more help pages.
+v1.2:
+Added player messages and guild applications. Can now select whether a guild should be public or private on creation.
