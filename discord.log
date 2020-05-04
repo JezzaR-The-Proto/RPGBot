@@ -1,3 +1,5 @@
-2020-05-02 20:35:11,955:INFO:discord.client: logging in using static token
-2020-05-02 20:35:12,625:INFO:discord.gateway: Shard ID 0 has sent the IDENTIFY payload.
-2020-05-02 20:35:12,805:INFO:discord.gateway: Shard ID 0 has connected to Gateway: ["gateway-prd-main-7vvz",{"micros":44235,"calls":["discord-sessions-prd-1-53",{"micros":41526,"calls":["start_session",{"micros":38214,"calls":["api-prd-main-us-east1-xg33",{"micros":34720,"calls":["get_user",{"micros":3571},"add_authorized_ip",{"micros":2313},"get_guilds",{"micros":1790},"coros_wait",{"micros":1}]}]},"guilds_connect",{"micros":10,"calls":[]},"presence_connect",{"micros":1,"calls":[]}]}]}] (Session ID: d6f70d00e8e66a68abb75a8f07a3a5ca).
+2020-05-03 21:51:38,552:INFO:discord.client: logging in using static token
+2020-05-03 21:51:38,843:WARNING:discord.http: We are being rate limited. Retrying in 0.01 seconds. Handled under the bucket "None:None:/users/@me"
+2020-05-03 21:51:38,843:WARNING:discord.http: Global rate limit has been hit. Retrying in 0.01 seconds.
+2020-05-03 21:51:38,983:INFO:discord.client: Cleaning up tasks.
+2020-05-03 21:51:38,984:INFO:discord.client: Closing the event loop.
