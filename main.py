@@ -108,6 +108,70 @@ async def help(ctx):
     await helpMsg.add_reaction("◀️")
     await helpMsg.add_reaction("⏹")
     await helpMsg.add_reaction("▶️")
+    inHelp = True
+    currentPage = 1
+    pageChanged = False
+    def correct_reaction(reaction, user):
+        if user == ctx.author: 
+            if str(reaction.emoji) == '◀️':
+                return True
+            elif str(reaction.emoji) == "⏹":
+                return True
+            elif str(reaction.emoji) == "▶️":
+                return True
+            else:
+                return False
+        else:
+            return False
+    while inHelp:
+        try:
+            reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=correct_reaction)
+        except asyncio.TimeoutError:
+            await ctx.send("You took too long without doing anything!")
+            return
+        await reaction.remove(user)
+        if str(reaction.emoji) == "⏹":
+            inHelp = False
+            pageChanged = False
+        elif str(reaction.emoji) == "▶️":
+            if currentPage == maxPages:
+                pageChanged = False
+                continue
+            else:
+                currentPage += 1
+                pageChanged = True
+        else:
+            if currentPage == 1:
+                pageChanged = False
+                continue
+            else:
+                currentPage -= 1
+                pageChanged = True
+        if pageChanged:
+            if currentPage == 1:
+                await helpMsg.edit(content="",embed=help1)
+            elif currentPage == 2:
+                await helpMsg.edit(content="",embed=help2)
+            elif currentPage == 3:
+                await helpMsg.edit(content="",embed=help3)
+            elif currentPage == 4:
+                await helpMsg.edit(content="",embed=help4)
+            elif currentPage == 5:
+                await helpMsg.edit(content="",embed=help5)
+            elif currentPage == 6:
+                await helpMsg.edit(content="",embed=help6)
+            elif currentPage == 7:
+                await helpMsg.edit(content="",embed=help7)
+            elif currentPage == 8:
+                await helpMsg.edit(content="",embed=help8)
+            elif currentPage == 9:
+                await helpMsg.edit(content="",embed=help9)
+            elif currentPage == 10:
+                await helpMsg.edit(content="",embed=help10)
+            elif currentPage == 11:
+                await helpMsg.edit(content="",embed=help11)
+            pageChanged = False
+    await helpMsg.delete()
 
 @client.command()
 @commands.cooldown(1,60,commands.BucketType.user)
@@ -321,7 +385,7 @@ async def guild(ctx, *guildArgs):
     try:
         args2 = guildArgs[1]
     except:
-        noSecondArgs = True
+        pass
 
     def is_correct(m):
         return m.author == ctx.author
@@ -1017,56 +1081,6 @@ async def unequip(ctx,*item):
     userCursor.execute("UPDATE users SET spd = ? WHERE userID = ?",(spd,ctx.author.id))
     userDB.commit()
     await ctx.send(f"You have unequipped {item}")
-
-@client.event
-async def on_reaction_add(reaction, user):
-    global helpPage, helpMsg
-    if reaction.emoji == "▶️":
-        if reaction.message == helpMsg:
-            if user == helpInit:
-                await reaction.remove(user)
-                if helpPage == maxPages:
-                    helpChanged = False
-                    return
-                else:
-                    helpPage += 1
-                    helpChanged = True
-    elif reaction.emoji == "◀️":
-        if reaction.message == helpMsg:
-            if user == helpInit:
-                await reaction.remove(user)
-                if helpPage == 1:
-                    helpChanged = False
-                    return
-                else:
-                    helpPage -= 1
-                    helpChanged = True
-    elif reaction.emoji == "⏹":
-        if reaction.message == helpMsg:
-            if user == helpInit:
-                await helpMsg.delete()
-                helpChanged = False
-                return
-    if helpChanged:
-        if helpPage == 1:
-            await helpMsg.edit(content="",embed=help1)
-        elif helpPage == 2:
-            await helpMsg.edit(content="",embed=help2)
-        elif helpPage == 3:
-            await helpMsg.edit(content="",embed=help3)
-        elif helpPage == 4:
-            await helpMsg.edit(content="",embed=help4)
-        elif helpPage == 5:
-            await helpMsg.edit(content="",embed=help5)
-        elif helpPage == 6:
-            await helpMsg.edit(content="",embed=help6)
-        elif helpPage == 7:
-            await helpMsg.edit(content="",embed=help7)
-        elif helpPage == 8:
-            await helpMsg.edit(content="",embed=help8)
-        elif helpPage == 9:
-            await helpMsg.edit(content="",embed=help9)
-        helpChanged = False
 
 @client.event
 async def on_command_error(ctx, error):
