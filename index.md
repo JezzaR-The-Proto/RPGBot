@@ -5,6 +5,7 @@ A simple Discord that emulates a RPG.
 * Reaction based help menu.
 * Levelling.
 * Earning gold and items.
+
 ## Command Help
 All these commands require the prefix "rpg" behind them:
 
@@ -42,6 +43,7 @@ All these commands require the prefix "rpg" behind them:
   * Clears all of your current messages. **THIS CANNOT BE UNDONE**
 * explore
   * Explore and either fight something, find an item or get some gold/xp.
+
 ### Invite Link
 [Invite Link](https://discordapp.com/oauth2/authorize?client_id=702276038314688593&permissions=336055360&scope=bot)
 ### Support Server
