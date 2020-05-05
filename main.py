@@ -175,6 +175,7 @@ async def create(ctx):
         playerSpd = 10
     
     userCursor.execute("INSERT INTO users (userID, name, guild, class, signupDate, money, str, def, spd, currentHP, hp, level, xp) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",(ctx.author.id, playerName, None, playerClass, datetime.now().strftime("%d-%m-%Y %H:%M:%S"), 100, playerStr, playerDef, playerSpd, playerHP, playerHP, 1, 0))
+    userCursor.execute("INSERT INTO inventories (userID, inv, equipped) VALUES(?,?,?)",(ctx.author.id,None,None))
     userDB.commit()
     await ctx.send("Character created! Have fun!")
 
@@ -184,10 +185,14 @@ async def inv(ctx, *member: discord.Member):
     if member == ():
         user = ctx.author.id
         nick = ctx.author.nick
+        if nick == None:
+            nick = ctx.author
     else:
         member = member[0]
         user = member.id
         nick = member.nick
+        if nick == None:
+            nick = member
     userCursor.execute("SELECT inv FROM inventories WHERE userID = ?",(user,))
     currentInv = userCursor.fetchall()[0][0]
     if currentInv == None:
@@ -856,6 +861,162 @@ def fightDef(player, enemy):
         x += 10
     fightEmbed = discord.Embed(title=f"A wild `level {enemyLevel} {enemy}` approaches `{name}`!",description=f"{msg} - {currentHP}/{hp} vs {enemyCurrentHP}/{enemyHP} - {enemyBar}\nReact below with what you want to do!")
     return fightEmbed
+
+@client.command()
+@commands.cooldown(1,30,commands.BucketType.user)
+async def equip(ctx,*item):
+    if len(item) == 0:
+        await ctx.send("You need to say what item you want to equip!")
+        return
+    item = item[0].capitalize()
+    userCursor.execute("SELECT inv FROM inventories WHERE userID = ?",(ctx.author.id,))
+    inv = userCursor.fetchall()[0][0]
+    if inv == None:
+        await ctx.send("You have nothing in your inventory... You can't equip anything.")
+        return
+    invItems = inv.split(",")
+    if item not in invItems:
+        await ctx.send("You do not have this item. You cannot equip it. (Beware you do have to put the entire name)")
+        return
+    itemIndex = invItems.index(item)
+    currentAmount = invItems[itemIndex+1]
+    currentAmount -= 1
+    if currentAmount < 1:
+        del invItems[itemIndex]
+        del invItems[itemIndex]
+    else:
+        invItems[itemIndex+1] = currentAmount
+    userCursor.execute("SELECT equipped FROM inventories WHERE userID = ?",(ctx.author.id,))
+    equipped = userCursor.fetchall()[0][0]
+    finalEquipped = []
+    if equipped == None:
+        finalEquipped.append(item)
+        finalEquipped.append(1)
+    else:
+        equipArray = equipped.split(",")
+        for equippedItem in equipArray:
+            finalEquipped.append(equippedItem)
+        finalEquipped.append(item)
+        finalEquipped.append(1)
+    equipped = ",".join(finalEquipped)
+    userCursor.execute("UPDATE inventories SET equipped = ? WHERE userID = ?",(equipped,ctx.author.id))
+    atkInc = 0
+    spdInc = 0
+    defInc = 0
+    if item == "Dagger":
+        atkInc = 3
+    elif item == "Longsword":
+        atkInc = 5
+    elif item == "Shirt":
+        defInc = 3
+    elif item == "Chainmail":
+        defInc = 5
+    elif item == "Boots":
+        spdInc = 3
+    elif item == "Shiny boots" or item == "Shiny Boots":
+        spdInc = 5
+    elif item == "Golden pan" or item == "Golden Pan":
+        defInc = 2
+        atkInc = 1
+    elif item == "Shield":
+        defInc = 5
+    elif item == "Helmet":
+        defInc = 3
+    elif item == "Better helmet" or item == "Better Helmet":
+        defInc = 5
+    userCursor.execute("SELECT str FROM users WHERE userID = ?",(ctx.author.id,))
+    atk = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT def FROM users WHERE userID = ?",(ctx.author.id,))
+    defe = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT spd FROM users WHERE userID = ?",(ctx.author.id,))
+    spd = userCursor.fetchall()[0][0]
+    atk += atkInc
+    defe += defInc
+    spd += spdInc
+    userCursor.execute("UPDATE users SET str = ? WHERE userID = ?",(atk,ctx.author.id))
+    userCursor.execute("UPDATE users SET def = ? WHERE userID = ?",(defe,ctx.author.id))
+    userCursor.execute("UPDATE users SET spd = ? WHERE userID = ?",(spd,ctx.author.id))
+    userDB.commit()
+    await ctx.send(f"You have equipped {item}")
+
+@client.command()
+@commands.cooldown(1,15,commands.BucketType.user)
+async def unequip(ctx,*item):
+    if len(item) == 0:
+        await ctx.send("You need to say what item you want to unequip!")
+        return
+    item = item[0].capitalize()
+    userCursor.execute("SELECT equipped FROM inventories WHERE userID = ?",(ctx.author.id,))
+    inv = userCursor.fetchall()[0][0]
+    if inv == None:
+        await ctx.send("You haven't equipped anything so you can't unequip anything!")
+        return
+    equippedItems = inv.split(",")
+    if item not in equippedItems:
+        await ctx.send("You do not have this item. You cannot unequip it. (Beware you do have to put the entire name)")
+        return
+    itemIndex = equippedItems.index(item)
+    currentAmount = equippedItems[itemIndex+1]
+    currentAmount -= 1
+    if currentAmount < 1:
+        del equippedItems[itemIndex]
+        del equippedItems[itemIndex]
+    else:
+        equippedItems[itemIndex+1] = currentAmount
+    equippedItems = ",".join(equippedItems)
+    userCursor.execute("UPDATE inventories SET equipped = ? WHERE userID = ?",(equippedItems,ctx.author.id))
+    userCursor.execute("SELECT inv FROM inventories WHERE userID = ?",(ctx.author.id,))
+    equipped = userCursor.fetchall()[0][0]
+    finalEquipped = []
+    if equipped == None:
+        finalEquipped.append(item)
+        finalEquipped.append(1)
+    else:
+        equipArray = equipped.split(",")
+        for equippedItem in equipArray:
+            finalEquipped.append(equippedItem)
+        finalEquipped.append(item)
+        finalEquipped.append(1)
+    equipped = ",".join(finalEquipped)
+    userCursor.execute("UPDATE inventories SET inv = ? WHERE userID = ?",(equipped,ctx.author.id))
+    atkInc = 0
+    spdInc = 0
+    defInc = 0
+    if item == "Dagger":
+        atkInc = 3
+    elif item == "Longsword":
+        atkInc = 5
+    elif item == "Shirt":
+        defInc = 3
+    elif item == "Chainmail":
+        defInc = 5
+    elif item == "Boots":
+        spdInc = 3
+    elif item == "Shiny boots" or item == "Shiny Boots":
+        spdInc = 5
+    elif item == "Golden pan" or item == "Golden Pan":
+        defInc = 2
+        atkInc = 1
+    elif item == "Shield":
+        defInc = 5
+    elif item == "Helmet":
+        defInc = 3
+    elif item == "Better helmet" or item == "Better Helmet":
+        defInc = 5
+    userCursor.execute("SELECT str FROM users WHERE userID = ?",(ctx.author.id,))
+    atk = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT def FROM users WHERE userID = ?",(ctx.author.id,))
+    defe = userCursor.fetchall()[0][0]
+    userCursor.execute("SELECT spd FROM users WHERE userID = ?",(ctx.author.id,))
+    spd = userCursor.fetchall()[0][0]
+    atk -= atkInc
+    defe -= defInc
+    spd -= spdInc
+    userCursor.execute("UPDATE users SET str = ? WHERE userID = ?",(atk,ctx.author.id))
+    userCursor.execute("UPDATE users SET def = ? WHERE userID = ?",(defe,ctx.author.id))
+    userCursor.execute("UPDATE users SET spd = ? WHERE userID = ?",(spd,ctx.author.id))
+    userDB.commit()
+    await ctx.send(f"You have unequipped {item}")
 
 @client.event
 async def on_reaction_add(reaction, user):
