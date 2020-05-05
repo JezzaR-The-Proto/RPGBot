@@ -18,6 +18,6 @@ https://discord.gg/NWdCX57
 ## Invite Link:
 https://discordapp.com/oauth2/authorize?client_id=702276038314688593&permissions=336055360&scope=bot
 ## Documentation/Help:
-https://jezzar-the-proto.github.io/RPGBot/index.html
+https://jezzar-the-proto.github.io/RPGBot
 ## Credits
 - Me (JezzaR the Protogen#6483) - Code
