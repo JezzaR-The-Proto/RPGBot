@@ -43,6 +43,10 @@ All these commands require the prefix "rpg" behind them:
   * Clears all of your current messages. **THIS CANNOT BE UNDONE**
 * explore
   * Explore and either fight something, find an item or get some gold/xp.
+* equip {item}
+  * Equip the specified item.
+* unequip {item}
+  * Unequip the specified item.
 
 ### Invite Link
 [Invite Link](https://discordapp.com/oauth2/authorize?client_id=702276038314688593&permissions=336055360&scope=bot)
