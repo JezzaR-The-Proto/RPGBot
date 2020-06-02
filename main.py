@@ -1,6 +1,6 @@
-# RPGBot
+﻿# RPGBot
 # Discord bot that allows users to have an RPG-like experience.
-# Created by JezzaR The Protogen#6483
+# Created by JezzaProto#6483
 import sqlite3, random, discord, logging, shutil, os, asyncio, requests, json, math
 from discord.ext import commands, tasks
 from discord.utils import get
@@ -39,7 +39,7 @@ messagePath = os.path.join(currentFolder,"msgs")
 help1 = discord.Embed(title='RPGBot Help | Welcome', description="Welcome to RPGBot!\nI am currently still in development so bugs are expected.\n\nTo start, use `rpg create` to make a character!\nReact below to move through help pages.",color=0x00ff99)
 help1.set_thumbnail(url="https://i.imgur.com/3eW4kff.png")
 help1.set_footer(text=f"Page 1 of {maxPages}")
- 
+
 help2 = discord.Embed(title="RPGBot Help | Create Help", description="Classes:\nWarrior - Low Damage, High Defence, High Health, Low Speed\nArcher - Medium Damage, Medium Defence, Medium Health, Medium Speed\nRouge - Medium Damage, Low Defence, Low Health, High Speed\nDruid - Low Damage, Medium Defence, Medium Health, Medium Speed\nMage - High Damage, Low Defence, Low Health, High Speed",color=0x00ff99)
 help2.set_thumbnail(url="https://i.imgur.com/3eW4kff.png")
 help2.set_footer(text=f"Page 2 of {maxPages}")
@@ -112,7 +112,7 @@ async def help(ctx):
     currentPage = 1
     pageChanged = False
     def correct_reaction(reaction, user):
-        if user == ctx.author: 
+        if user == ctx.author:
             if str(reaction.emoji) == '◀️':
                 return True
             elif str(reaction.emoji) == "⏹":
@@ -196,7 +196,7 @@ async def create(ctx):
         playerName = ""
         playerClass = ""
         return
-    
+
     await ctx.send("",embed=createClass)
     try:
         playerClass = await client.wait_for('message', check=is_correct, timeout=15.0)
@@ -207,11 +207,11 @@ async def create(ctx):
         playerName = ""
         playerClass = ""
         return
-    
+
     if playerClass.lower() != "warrior" and playerClass.lower() != "archer" and playerClass.lower() != "rouge" and playerClass.lower() != "mage" and playerClass.lower() != "druid":
         await ctx.send("That is not a valid class. Please retry!")
         return
-    
+
     if playerClass == "warrior":
         playerStr = 5
         playerDef = 20
@@ -237,7 +237,7 @@ async def create(ctx):
         playerDef = 10
         playerHP = 30
         playerSpd = 10
-    
+
     userCursor.execute("INSERT INTO users (userID, name, guild, class, signupDate, money, str, def, spd, currentHP, hp, level, xp) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",(ctx.author.id, playerName, None, playerClass, datetime.now().strftime("%d-%m-%Y %H:%M:%S"), 100, playerStr, playerDef, playerSpd, playerHP, playerHP, 1, 0))
     userCursor.execute("INSERT INTO inventories (userID, inv, equipped) VALUES(?,?,?)",(ctx.author.id,None,None))
     userDB.commit()
@@ -505,6 +505,14 @@ async def guild(ctx, *guildArgs):
             users = users[0][0]
             await ctx.send(f"Guild {x} has {users} members and {money} gold.")
     elif args == "deposit":
+        if len(args2) > 1:
+            await ctx.send("You need to specify an amount to send!")
+            return
+        try:
+            args2 = int(args2)
+        except:
+            await ctx.send("You need to specify an amount to send!")
+            return
         userCursor.execute("SELECT money FROM users WHERE userID = ?",(ctx.author.id,))
         userMoney = userCursor.fetchall()[0][0]
         if int(args2) > int(userMoney):
@@ -522,24 +530,81 @@ async def guild(ctx, *guildArgs):
         userCursor.execute("UPDATE guilds SET money = ? WHERE guildID = ?",(guildMoney, userGuild))
         userDB.commit()
         await ctx.send(f"Paid {str(args2)} gold into {guildName}'s bank.\n{guildName.capitalize()} now has {guildMoney} gold and you have {userMoney} gold.")
-    elif args == "withdraw":
-        userCursor.execute("SELECT money FROM users WHERE userID = ?",(ctx.author.id,))
-        userMoney = userCursor.fetchall()[0][0]
-        userCursor.execute("SELECT guild FROM users WHERE userID = ?",(ctx.author.id,))
-        userGuild = userCursor.fetchall()[0][0]
-        userCursor.execute("SELECT money FROM guilds WHERE guildID = ?",(userGuild,))
-        guildMoney = userCursor.fetchall()[0][0]
-        userCursor.execute("SELECT name FROM guilds WHERE guildID = ?",(userGuild,))
-        guildName = userCursor.fetchall()[0][0]
-        if int(args2) > int(guildMoney):
-            await ctx.send(f"The guild does not have enough gold. It has {guildMoney} gold.")
+    elif args == "give":
+        if len(args2) < 1:
+            await ctx.send("You need to specify an amount to give!")
             return
-        guildMoney -= int(args2)
-        userMoney += int(args2)
-        userCursor.execute("UPDATE users SET money = ? WHERE userID = ?",(userMoney, ctx.author.id))
-        userCursor.execute("UPDATE guilds SET money = ? WHERE guildID = ?",(guildMoney, userGuild))
+        try:
+            args2 = int(args2)
+        except:
+            await ctx.send("You need to specify an amount to give!")
+            return
+        userCursor.execute("SELECT money FROM guilds WHERE masterID = ?",(ctx.author.id,))
+        GuildMoney = userCursor.fetchall()
+        try:
+            GuildMoney = GuildMoney[0][0]
+        except IndexError:
+            await ctx.send("You do not own the guild!")
+            return
+        if int(GuildMoney) < args2:
+            await ctx.send("The guild doesn't have enough money!")
+            return
+        await ctx.send("Please @ who you would like to hand this money out to.")
+        try:
+            message = await client.wait_for('message', check=is_correct, timeout=60.0)
+            message = message.content
+        except asyncio.TimeoutError:
+            await ctx.send("You took too long! No money has been sent.")
+            return
+        if message[:3] == "<@!":
+            MentionedID = message[3:-1]
+        else:
+            await ctx.send("That isn't a valid mention!")
+            return
+        userCursor.execute("SELECT money FROM users WHERE userID = ?",(MentionedID,))
+        SendMoney = userCursor.fetchall()
+        userCursor.execute("SELECT guild FROM users WHERE userID = ?",(MentionedID,))
+        SendUserGuild = userCursor.fetchall()
+        userCursor.execute("SELECT guild FROM users WHERE userID = ?",(ctx.author.id,))
+        UserGuild = userCursor.fetchall()
+        try:
+            UserGuild = UserGuild[0][0]
+        except IndexError:
+            await ctx.send("You do not belong to a guild.")
+            return
+        try:
+            SendUserGuild = SendUserGuild[0][0]
+        except IndexError:
+            await ctx.send("The person you are trying to send money too doesn't belong to a guild.")
+            return
+        try:
+            SendMoney = SendMoney[0][0]
+        except IndexError:
+            await ctx.send("This user doesn't have a character!")
+            return
+        if SendUserGuild == None:
+            await ctx.send("The person you are trying to send money too doesn't belong to a guild.")
+            return
+        elif SendUserGuild != UserGuild:
+            await ctx.send("The person you are trying to send money to isn't in the same guild as you.")
+            return
+        userCursor.execute("SELECT money FROM guilds WHERE masterID = ?",(ctx.author.id,))
+        UserMoney = userCursor.fetchall()
+        try:
+            UserMoney = UserMoney[0][0]
+        except IndexError:
+            await ctx.send("You do not own any guilds.")
+            return
+        UserMoney = int(UserMoney)
+        if UserMoney < args2:
+            await ctx.send("The guild does not have enough money to send.")
+            return
+        UserMoney -= args2
+        SendMoney += args2
+        userCursor.execute("UPDATE users SET money = ? WHERE userID = ?",(SendMoney,MentionedID))
+        userCursor.execute("UPDATE guilds SET money = ? WHERE masterID = ?",(UserMoney,ctx.author.id))
         userDB.commit()
-        await ctx.send(f"Withdrew {str(args2)} gold from {guildName}'s bank.\n{guildName.capitalize()} now has {guildMoney} gold and you have {userMoney} gold.")
+        await ctx.send(f"<@!{MentionedID}> was given {str(args2)} gold. They now have {SendMoney} gold and the guild has {UserMoney} gold.")
     elif args == "balance":
         userCursor.execute("SELECT guild FROM users WHERE userID = ?",(ctx.author.id,))
         try:
@@ -591,7 +656,7 @@ async def guild(ctx, *guildArgs):
                     await application.add_reaction("❎")
                     await application.add_reaction("✅")
                     def correct_reaction(reaction, user):
-                        if user == ctx.author: 
+                        if user == ctx.author:
                             if str(reaction.emoji) == '❎':
                                 return True
                             elif str(reaction.emoji) == "✅":
@@ -722,7 +787,7 @@ async def npcFight(ctx, enemyName):
     await fightMsg.add_reaction("🛡️")
     await fightMsg.add_reaction("🏃")
     def check(reaction, user):
-        if user == ctx.author: 
+        if user == ctx.author:
             if str(reaction.emoji) == '⚔️':
                 return True
             elif str(reaction.emoji) == "🛡️":
@@ -1096,4 +1161,4 @@ async def on_command_error(ctx, error):
         return await ctx.send(f"Woah woah, slow down there, you have to wait {towait} to do this command again.")
 
 # Start Discord Bot
-client.run("epic bot token area")
+client.run("bot token area")
