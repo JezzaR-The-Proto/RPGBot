@@ -1,4 +1,4 @@
-﻿# RPGBot
+# RPGBot
 # Discord bot that allows users to have an RPG-like experience.
 # Created by JezzaProto#6483
 import sqlite3, random, discord, logging, shutil, os, asyncio, requests, json, math
@@ -191,6 +191,7 @@ async def create(ctx):
         playerName = playerName.content
         if len(playerName) > 14:
             await ctx.send("That name is too long. Creation cancelled.")
+            return
     except asyncio.TimeoutError:
         await ctx.send("You took too long! Please retry!")
         playerName = ""
